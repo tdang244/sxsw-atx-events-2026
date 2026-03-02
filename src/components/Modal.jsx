@@ -29,6 +29,7 @@ export default function Modal({ ev, onClose }) {
           background: "#fff", borderRadius: 16,
           maxWidth: 540, width: "100%", maxHeight: "88vh", overflowY: "auto",
           boxShadow: "0 24px 64px rgba(157,23,77,0.18), 0 4px 16px rgba(0,0,0,0.08)",
+          fontFamily: "system-ui, -apple-system, sans-serif",
         }}
       >
         {/* Header */}
