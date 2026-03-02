@@ -49,7 +49,7 @@ export default function Modal({ ev, onClose }) {
               ✕
             </button>
           </div>
-          <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: "#0f172a", lineHeight: 1.3 }}>
+          <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: "#0f172a", lineHeight: 1.3, fontFamily: "inherit" }}>
             {ev.name}
           </h2>
         </div>
@@ -75,7 +75,7 @@ export default function Modal({ ev, onClose }) {
             <div style={{ fontSize: 10, color: PK.mid, fontWeight: 700, marginBottom: 6, letterSpacing: 1 }}>
               DESCRIPTION
             </div>
-            <p style={{ margin: 0, fontSize: 14, color: "#334155", lineHeight: 1.65 }}>{ev.description}</p>
+            <p style={{ margin: 0, fontSize: 14, color: "#334155", lineHeight: 1.65, fontFamily: "inherit" }}>{ev.description}</p>
           </div>
 
           {/* Pro tip */}
@@ -85,7 +85,7 @@ export default function Modal({ ev, onClose }) {
               borderRadius: 8, padding: "10px 12px",
             }}>
               <div style={{ fontSize: 10, color: PK.deep, fontWeight: 800, marginBottom: 4 }}>💡 PRO TIP</div>
-              <p style={{ margin: 0, fontSize: 13, color: PK.deep, lineHeight: 1.5 }}>{ev.notes}</p>
+              <p style={{ margin: 0, fontSize: 13, color: PK.deep, lineHeight: 1.5, fontFamily: "inherit" }}>{ev.notes}</p>
             </div>
           )}
 
