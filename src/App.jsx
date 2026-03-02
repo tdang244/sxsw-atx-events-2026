@@ -1,8 +1,35 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { EVENTS } from "./data/events";
 import { CAT, PK, PRICE_OPTIONS } from "./constants/theme";
 import EventCard from "./components/EventCard";
 import Modal from "./components/Modal";
+
+const STORAGE_KEY = "sxsw_starred_events";
+
+function useStarred() {
+  const [starred, setStarred] = useState(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...starred]));
+  }, [starred]);
+
+  function toggle(id) {
+    setStarred((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  return { starred, toggle };
+}
 
 const dropdownStyle = {
   padding: "0 36px 0 16px",
@@ -166,9 +193,111 @@ function CategoryPills({ filtered, activeCat, onCatChange }) {
   );
 }
 
+// Parse "Mar 7", "Mar 12–18", "Mar TBD" → sort key (day number, TBD → 999)
+function parseSortDay(dateStr) {
+  if (!dateStr) return 999;
+  const match = dateStr.match(/Mar\s+(\d+)/);
+  return match ? parseInt(match[1], 10) : 999;
+}
+
+function MyEventsTab({ starredIds, onStar, onOpen }) {
+  const starredEvents = useMemo(() => {
+    return EVENTS
+      .filter((ev) => starredIds.has(ev.id))
+      .slice()
+      .sort((a, b) => parseSortDay(a.date) - parseSortDay(b.date));
+  }, [starredIds]);
+
+  if (starredEvents.length === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: "60px 24px", color: PK.mid }}>
+        <div style={{ fontSize: 44 }}>⭐</div>
+        <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8, color: PK.deep }}>No saved events yet</div>
+        <div style={{ fontSize: 13, marginTop: 4 }}>Star events from the All Events tab to save them here</div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: 860, margin: "0 auto", padding: "16px 20px 40px" }}>
+      <p style={{ fontSize: 12.5, color: PK.mid, margin: "0 0 14px" }}>
+        <strong style={{ color: PK.deep }}>{starredEvents.length}</strong> saved event{starredEvents.length !== 1 ? "s" : ""} · sorted by date
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+        {starredEvents.map((ev) => (
+          <EventCard
+            key={ev.id}
+            ev={ev}
+            onClick={onOpen}
+            starred={true}
+            onStar={onStar}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TabBar({ activeTab, onTabChange, starredCount }) {
+  const tabs = [
+    { id: "all",   label: "All Events", count: null },
+    { id: "saved", label: "My Events",  count: starredCount },
+  ];
+
+  return (
+    <div style={{
+      background: "#fff",
+      borderBottom: `2px solid ${PK.light}`,
+    }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 20px", display: "flex", gap: 4 }}>
+        {tabs.map((tab) => {
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              style={{
+                padding: "12px 18px",
+                border: "none",
+                borderBottom: active ? `3px solid ${PK.hot}` : "3px solid transparent",
+                background: "none",
+                color: active ? PK.deep : "#64748b",
+                fontWeight: active ? 800 : 500,
+                fontSize: 14,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                marginBottom: -2,
+                transition: "color 0.15s",
+              }}
+            >
+              {tab.id === "saved" ? "⭐" : "📋"} {tab.label}
+              {tab.count != null && (
+                <span style={{
+                  background: tab.count > 0 ? "#f59e0b" : "#e5e7eb",
+                  color: tab.count > 0 ? "#fff" : "#94a3b8",
+                  fontSize: 11, fontWeight: 700,
+                  borderRadius: 20, padding: "1px 7px",
+                  minWidth: 18, textAlign: "center",
+                }}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const filters = useFilters();
   const [selected, setSelected] = useState(null);
+  const { starred, toggle } = useStarred();
+  const [activeTab, setActiveTab] = useState("all");
 
   return (
     <>
@@ -177,35 +306,63 @@ export default function App() {
 
         <Header filters={filters} />
 
-        <CategoryPills
-          filtered={filters.filtered}
-          activeCat={filters.cat}
-          onCatChange={filters.setCat}
+        <TabBar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          starredCount={starred.size}
         />
 
-        {/* Results grid */}
-        <div style={{ maxWidth: 860, margin: "0 auto", padding: "16px 20px 40px" }}>
-          <p style={{ fontSize: 12.5, color: PK.mid, margin: "0 0 14px" }}>
-            Showing <strong style={{ color: PK.deep }}>{filters.filtered.length}</strong> of {EVENTS.length} events
-          </p>
+        {activeTab === "all" && (
+          <>
+            <CategoryPills
+              filtered={filters.filtered}
+              activeCat={filters.cat}
+              onCatChange={filters.setCat}
+            />
 
-          {filters.filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "60px 24px", color: PK.mid }}>
-              <div style={{ fontSize: 44 }}>🔍</div>
-              <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8, color: PK.deep }}>No events found</div>
-              <div style={{ fontSize: 13, marginTop: 4 }}>Try clearing some filters</div>
+            <div style={{ maxWidth: 860, margin: "0 auto", padding: "16px 20px 40px" }}>
+              <p style={{ fontSize: 12.5, color: PK.mid, margin: "0 0 14px" }}>
+                Showing <strong style={{ color: PK.deep }}>{filters.filtered.length}</strong> of {EVENTS.length} events
+              </p>
+
+              {filters.filtered.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "60px 24px", color: PK.mid }}>
+                  <div style={{ fontSize: 44 }}>🔍</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8, color: PK.deep }}>No events found</div>
+                  <div style={{ fontSize: 13, marginTop: 4 }}>Try clearing some filters</div>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+                  {filters.filtered.map((ev) => (
+                    <EventCard
+                      key={ev.id}
+                      ev={ev}
+                      onClick={setSelected}
+                      starred={starred.has(ev.id)}
+                      onStar={toggle}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
-              {filters.filtered.map((ev) => (
-                <EventCard key={ev.id} ev={ev} onClick={setSelected} />
-              ))}
-            </div>
-          )}
-        </div>
+          </>
+        )}
+
+        {activeTab === "saved" && (
+          <MyEventsTab
+            starredIds={starred}
+            onStar={toggle}
+            onOpen={setSelected}
+          />
+        )}
       </div>
 
-      <Modal ev={selected} onClose={() => setSelected(null)} />
+      <Modal
+        ev={selected}
+        onClose={() => setSelected(null)}
+        starred={selected ? starred.has(selected.id) : false}
+        onStar={toggle}
+      />
     </>
   );
 }

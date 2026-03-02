@@ -2,24 +2,27 @@ import { useState } from "react";
 import { CAT, PK } from "../constants/theme";
 import PriceBadge from "./PriceBadge";
 
-export default function EventCard({ ev, onClick }) {
+export default function EventCard({ ev, onClick, starred, onStar }) {
   const cfg = CAT[ev.category] ?? CAT["Other"];
   const [hovered, setHovered] = useState(false);
 
   const cardStyle = {
-    background: "#fff",
+    background: starred ? "#fffbf0" : "#fff",
     borderRadius: 12,
     padding: "14px 16px",
     cursor: "pointer",
-    border: `1.5px solid ${hovered ? PK.hot : "#e5e7eb"}`,
+    border: `1.5px solid ${starred ? "#f59e0b" : hovered ? PK.hot : "#e5e7eb"}`,
     boxShadow: hovered
       ? "0 6px 20px rgba(236,72,153,0.13)"
-      : "0 1px 3px rgba(0,0,0,0.05)",
+      : starred
+        ? "0 2px 8px rgba(245,158,11,0.12)"
+        : "0 1px 3px rgba(0,0,0,0.05)",
     transform: hovered ? "translateY(-2px)" : "none",
     transition: "all 0.15s",
     display: "flex",
     flexDirection: "column",
     gap: 8,
+    position: "relative",
   };
 
   const truncate = (str, max) =>
@@ -32,19 +35,34 @@ export default function EventCard({ ev, onClick }) {
       onMouseLeave={() => setHovered(false)}
       style={cardStyle}
     >
-      {/* Title + category badge */}
+      {/* Title + category badge + star */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
         <div style={{ fontWeight: 700, fontSize: 13.5, color: "#0f172a", lineHeight: 1.35, flex: 1 }}>
           {ev.name}
         </div>
-        <span style={{
-          fontSize: 11, fontWeight: 700,
-          color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.border}`,
-          padding: "2px 8px", borderRadius: 20,
-          whiteSpace: "nowrap", flexShrink: 0,
-        }}>
-          {cfg.emoji} {ev.category}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+          <span style={{
+            fontSize: 11, fontWeight: 700,
+            color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.border}`,
+            padding: "2px 8px", borderRadius: 20,
+            whiteSpace: "nowrap",
+          }}>
+            {cfg.emoji} {ev.category}
+          </span>
+          <button
+            onClick={(e) => { e.stopPropagation(); onStar(ev.id); }}
+            title={starred ? "Remove from My Events" : "Save to My Events"}
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              fontSize: 16, lineHeight: 1, padding: "2px 0",
+              opacity: starred ? 1 : 0.35,
+              transition: "opacity 0.15s, transform 0.15s",
+              transform: starred ? "scale(1.15)" : "scale(1)",
+            }}
+          >
+            {starred ? "⭐" : "☆"}
+          </button>
+        </div>
       </div>
 
       {/* Date / time / venue */}

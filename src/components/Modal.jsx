@@ -8,7 +8,7 @@ const INFO_FIELDS = [
   ["⚡ RSVP",   (ev) => (ev.rsvp_required === "Yes" ? "Required" : "Walk-in OK")],
 ];
 
-export default function Modal({ ev, onClose }) {
+export default function Modal({ ev, onClose, starred, onStar }) {
   if (!ev) return null;
 
   const cfg = CAT[ev.category] ?? CAT["Other"];
@@ -42,12 +42,28 @@ export default function Modal({ ev, onClose }) {
             }}>
               {cfg.emoji} {ev.category}
             </span>
-            <button
-              onClick={onClose}
-              style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "#94a3b8" }}
-            >
-              ✕
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <button
+                onClick={() => onStar(ev.id)}
+                title={starred ? "Remove from My Events" : "Save to My Events"}
+                style={{
+                  background: starred ? "#fffbf0" : "none",
+                  border: starred ? "1.5px solid #f59e0b" : "1.5px solid #e5e7eb",
+                  borderRadius: 8, cursor: "pointer",
+                  fontSize: 13, fontWeight: 700,
+                  padding: "4px 10px", color: starred ? "#b45309" : "#94a3b8",
+                  transition: "all 0.15s",
+                }}
+              >
+                {starred ? "⭐ Saved" : "☆ Save"}
+              </button>
+              <button
+                onClick={onClose}
+                style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "#94a3b8" }}
+              >
+                ✕
+              </button>
+            </div>
           </div>
           <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: "#0f172a", lineHeight: 1.3, fontFamily: "inherit" }}>
             {ev.name}
