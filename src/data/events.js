@@ -1398,5 +1398,19 @@ export const EVENTS = [
     "ticket_price": "Free (RSVP)",
     "info_url": "https://sxsw.com/free-and-premium-events/",
     "rsvp_url": "https://sxsw.com/free-and-premium-events/"
+  },
+  {
+    "id": 101,
+    "name": "Paramount+ The Lodge",
+    "category": "Film & TV",
+    "date": "Mar 12–15",
+    "time": "Thu 4pm–12am | Fri–Sat 12pm–7pm (public) & 8–11pm (badge) | Sun 12pm–8pm",
+    "venue": "Clive Bar, 609 Davis St (Rainey Street)",
+    "description": "For the fourth year at SXSW, Paramount+ transforms Clive Bar into a multi-level immersive fan experience. Explore themed installations celebrating top Paramount+ shows and sports: a Survivor 50 Tribal Council set, Landman's West Texas oilfield environment with The Patch Café cocktails, Marshals Montana frontier photo moments, a UFC walk-out tunnel, NFL-themed thrones, and a western leather customization station.",
+    "rsvp_required": "No",
+    "notes": "Public hours Fri–Sun daytime; Thursday evening and Fri–Sat late nights are badge holder only",
+    "ticket_price": "Free (Public)",
+    "info_url": "https://www.themovieblog.com/2026/03/paramount-takes-austin-by-storm-with-the-lodge-at-sxsw-2026/",
+    "rsvp_url": "https://www.themovieblog.com/2026/03/paramount-takes-austin-by-storm-with-the-lodge-at-sxsw-2026/"
   }
 ];
