@@ -50,16 +50,28 @@ const dropdownStyle = {
   backgroundPosition: "right 12px center",
 };
 
+const SXSW_DAYS = [10, 11, 12, 13, 14, 15, 16, 17, 18];
+
+function eventCoversDay(dateStr, day) {
+  if (!dateStr) return true;
+  const rangeMatch = dateStr.match(/Mar\s+(\d+)[–\-](\d+)/);
+  if (rangeMatch) return day >= parseInt(rangeMatch[1], 10) && day <= parseInt(rangeMatch[2], 10);
+  const singleMatch = dateStr.match(/Mar\s+(\d+)/);
+  if (singleMatch) return parseInt(singleMatch[1], 10) === day;
+  return true;
+}
+
 function useFilters() {
   const [query,  setQuery]  = useState("");
   const [cat,    setCat]    = useState("All");
   const [access, setAccess] = useState("All");
   const [rsvp,   setRsvp]   = useState("All");
+  const [day,    setDay]    = useState(null);
 
-  const isFiltered = query || cat !== "All" || access !== "All" || rsvp !== "All";
+  const isFiltered = query || cat !== "All" || access !== "All" || rsvp !== "All" || day !== null;
 
   function clearAll() {
-    setQuery(""); setCat("All"); setAccess("All"); setRsvp("All");
+    setQuery(""); setCat("All"); setAccess("All"); setRsvp("All"); setDay(null);
   }
 
   const filtered = useMemo(() => EVENTS.filter((ev) => {
@@ -67,6 +79,7 @@ function useFilters() {
     if (access !== "All" && ev.ticket_price !== access) return false;
     if (rsvp === "Walk-in OK"    && ev.rsvp_required === "Yes") return false;
     if (rsvp === "RSVP Required" && ev.rsvp_required !== "Yes") return false;
+    if (day !== null && !eventCoversDay(ev.date, day)) return false;
     if (query) {
       const q = query.toLowerCase();
       return (
@@ -77,13 +90,13 @@ function useFilters() {
       );
     }
     return true;
-  }), [query, cat, access, rsvp]);
+  }), [query, cat, access, rsvp, day]);
 
-  return { query, setQuery, cat, setCat, access, setAccess, rsvp, setRsvp, isFiltered, clearAll, filtered };
+  return { query, setQuery, cat, setCat, access, setAccess, rsvp, setRsvp, day, setDay, isFiltered, clearAll, filtered };
 }
 
 function Header({ filters }) {
-  const { query, setQuery, cat, setCat, access, setAccess, rsvp, setRsvp, isFiltered, clearAll, filtered } = filters;
+  const { query, setQuery, cat, setCat, access, setAccess, rsvp, setRsvp, day, setDay, isFiltered, clearAll, filtered } = filters;
 
   return (
     <div style={{
@@ -150,6 +163,33 @@ function Header({ filters }) {
               ✕ Clear all
             </button>
           )}
+        </div>
+
+        {/* Date filter pills */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, width: "100%", marginTop: 10 }}>
+          {SXSW_DAYS.map((d) => {
+            const active = day === d;
+            return (
+              <button
+                key={d}
+                onClick={() => setDay(active ? null : d)}
+                style={{
+                  padding: "5px 13px",
+                  borderRadius: 20,
+                  border: `1.5px solid ${active ? PK.hot : PK.light}`,
+                  background: active ? PK.hot : "rgba(255,255,255,0.12)",
+                  color: "#fff",
+                  fontSize: 12,
+                  fontWeight: active ? 700 : 500,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  transition: "all 0.12s",
+                }}
+              >
+                Mar {d}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
